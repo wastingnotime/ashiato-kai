@@ -74,13 +74,18 @@ export const searchKeys = [
 ] as const;
 export type SearchKey = (typeof searchKeys)[number];
 
+export class ApiError extends Error {
+  constructor(public code: "validationError" | "loadError") {
+    super(code);
+  }
+}
+
 async function getJson<T>(path: string, params?: URLSearchParams): Promise<T> {
   const suffix = params?.toString();
   const response = await fetch(`/web-api${path}${suffix ? `?${suffix}` : ""}`);
   if (!response.ok) {
-    if (response.status === 400)
-      throw new Error("Confira os termos da pesquisa e tente novamente.");
-    throw new Error("Não foi possível carregar os dados. Tente novamente.");
+    if (response.status === 400) throw new ApiError("validationError");
+    throw new ApiError("loadError");
   }
   return response.json() as Promise<T>;
 }
@@ -118,17 +123,3 @@ export const prefectureStats = (name: string) =>
   );
 export const prefectureGeo = (name: string) =>
   getJson<Geolocation>(`/api/v1/geolocation/${encodeURIComponent(name)}`);
-
-export function formatCount(value: number) {
-  return new Intl.NumberFormat("pt-BR").format(value);
-}
-export function readable(value: string | number | undefined) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    value === "NÃO CONSTA"
-  )
-    return "Não consta";
-  return String(value);
-}

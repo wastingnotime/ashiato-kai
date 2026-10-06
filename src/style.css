@@ -125,6 +125,36 @@ main {
   font-size: 16px;
   color: #a99f8f;
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.language-switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #e0d7ca;
+  border-radius: 999px;
+  background: #f9f5ed;
+}
+.language-switch button {
+  min-width: 32px;
+  height: 27px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #89857b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.language-switch button.active {
+  color: #a84938;
+  background: #fffefa;
+  box-shadow: 0 1px 4px rgba(63, 53, 36, 0.08);
+}
 .site-footer {
   max-width: 1440px;
   margin: 100px auto 0;
@@ -1070,7 +1100,10 @@ main {
     font-size: 8px;
   }
   .header-japanese {
-    font-size: 14px;
+    display: none;
+  }
+  .header-actions {
+    gap: 0;
   }
   .desktop-nav {
     display: none;

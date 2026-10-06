@@ -12,12 +12,11 @@ import {
 import type { JSX } from "solid-js";
 import { useNavigate, useParams, useSearchParams } from "@solidjs/router";
 import {
-  formatCount,
+  ApiError,
   getGroup,
   nameStats,
   prefectureGeo,
   prefectureStats,
-  readable,
   searchImmigrants,
   searchKeys,
   surnameStats,
@@ -32,21 +31,22 @@ import {
   type SurnameStat,
   type PrefectureStat,
 } from "./api";
+import { formatCount, locale, readable, setLocale, t } from "./i18n";
 import "./style.css";
 
-const labels: Record<SearchKey, string> = {
-  NameRomaji: "Nome",
-  SurnameRomaji: "Sobrenome",
-  Year: "Ano de chegada",
-  PrefectureName: "Província de origem",
-  ShipName: "Nome do navio",
-};
-const placeholders: Record<SearchKey, string> = {
-  NameRomaji: "Ex.: Tadao",
-  SurnameRomaji: "Ex.: Ueda",
-  Year: "Ex.: 1955",
-  PrefectureName: "Ex.: Yamaguchi",
-  ShipName: "Ex.: America-Maru",
+const labelKeys = {
+  NameRomaji: "name",
+  SurnameRomaji: "surname",
+  Year: "arrivalYear",
+  PrefectureName: "originPrefecture",
+  ShipName: "shipName",
+} as const;
+const examples: Record<SearchKey, string> = {
+  NameRomaji: "Tadao",
+  SurnameRomaji: "Ueda",
+  Year: "1955",
+  PrefectureName: "Yamaguchi",
+  ShipName: "America-Maru",
 };
 
 function Icon(props: {
@@ -119,42 +119,64 @@ function Layout(props: { children?: JSX.Element }) {
   return (
     <div class="app-shell">
       <header class="site-header">
-        <A href="/" class="brand" aria-label="Ashiato Kai — início">
-          <span class="brand-mark">足</span>
+        <A href="/" class="brand" aria-label={`Ashiato Kai — ${t("goHome")}`}>
+          <span class="brand-mark" lang="ja" translate="no">
+            足
+          </span>
           <span>
             <strong>ashiato kai</strong>
-            <small>caminhos de origem</small>
+            <small>{t("brandTagline")}</small>
           </span>
         </A>
-        <nav class="desktop-nav" aria-label="Navegação principal">
+        <nav class="desktop-nav" aria-label={t("navigation")}>
           <A href="/" end activeClass="active">
-            Pesquisar
+            {t("search")}
           </A>
           <A href="/statistics" activeClass="active">
-            Estatísticas
+            {t("statistics")}
           </A>
         </nav>
-        <span class="header-japanese" lang="ja">
-          足跡会
-        </span>
+        <div class="header-actions">
+          <span class="header-japanese" lang="ja" translate="no">
+            足跡会
+          </span>
+          <div class="language-switch" role="group" aria-label={t("language")}>
+            <button
+              type="button"
+              lang="pt-BR"
+              aria-pressed={locale() === "pt-BR"}
+              classList={{ active: locale() === "pt-BR" }}
+              onClick={() => setLocale("pt-BR")}
+            >
+              PT
+            </button>
+            <button
+              type="button"
+              lang="en-US"
+              aria-pressed={locale() === "en-US"}
+              classList={{ active: locale() === "en-US" }}
+              onClick={() => setLocale("en-US")}
+            >
+              EN
+            </button>
+          </div>
+        </div>
       </header>
       <main>{props.children}</main>
       <footer class="site-footer">
         <span>
-          ASHIATO KAI <i>·</i> HISTÓRIAS QUE SE ENCONTRAM
+          ASHIATO KAI <i>·</i> {t("footerTagline")}
         </span>
-        <span>
-          Os registros são pistas para pesquisa, não prova de parentesco.
-        </span>
+        <span>{t("footerCaution")}</span>
       </footer>
-      <nav class="mobile-nav" aria-label="Navegação principal">
+      <nav class="mobile-nav" aria-label={t("navigation")}>
         <A href="/" end activeClass="active">
           <Icon name="search" size={21} />
-          <span>Pesquisar</span>
+          <span>{t("search")}</span>
         </A>
         <A href="/statistics" activeClass="active">
           <Icon name="chart" size={21} />
-          <span>Estatísticas</span>
+          <span>{t("statistics")}</span>
         </A>
       </nav>
     </div>
@@ -165,7 +187,7 @@ function BackLink(props: { href: string; label?: string }) {
   return (
     <A class="back-link" href={props.href}>
       <Icon name="back" size={17} />
-      {props.label || "Voltar"}
+      {props.label || t("back")}
     </A>
   );
 }
@@ -173,23 +195,23 @@ function Loading() {
   return (
     <div class="loading" role="status">
       <span class="spinner" />
-      Buscando registros...
+      {t("loading")}
     </div>
   );
 }
 function ErrorBox(props: { error: unknown }) {
   return (
     <div class="message error" role="alert">
-      {props.error instanceof Error
-        ? props.error.message
-        : "Não foi possível carregar os dados."}
+      {props.error instanceof ApiError ? t(props.error.code) : t("loadError")}
     </div>
   );
 }
 function Empty(props: { title: string; body: string }) {
   return (
     <div class="empty-state">
-      <span class="empty-symbol">探</span>
+      <span class="empty-symbol" lang="ja" translate="no">
+        探
+      </span>
       <h3>{props.title}</h3>
       <p>{props.body}</p>
     </div>
@@ -203,7 +225,7 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
       searchKeys.map((key) => [key, props.initial?.get(key) || ""]),
     ) as Record<SearchKey, string>,
   );
-  const [error, setError] = createSignal("");
+  const [hasError, setHasError] = createSignal(false);
   createEffect(() => {
     const query = props.initial?.toString();
     if (query !== undefined)
@@ -226,10 +248,10 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
       if (value) params.set(key, value);
     }
     if (!params.has("NameRomaji") && !params.has("SurnameRomaji")) {
-      setError("Informe pelo menos um nome ou sobrenome para começar.");
+      setHasError(true);
       return;
     }
-    setError("");
+    setHasError(false);
     navigate(`/search?${params.toString()}`);
   };
   return (
@@ -241,11 +263,11 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
         <For each={searchKeys}>
           {(key) => (
             <label class="field">
-              <span>{labels[key]}</span>
+              <span>{t(labelKeys[key])}</span>
               <input
                 value={values()[key]}
                 onInput={(event) => update(key, event.currentTarget.value)}
-                placeholder={placeholders[key]}
+                placeholder={t("example", { value: examples[key] })}
                 maxlength="200"
                 inputmode={key === "Year" ? "numeric" : "text"}
                 autocomplete="off"
@@ -254,18 +276,16 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
           )}
         </For>
       </div>
-      <p class="form-help">
-        Informe um nome ou sobrenome. Use os demais campos para refinar a busca.
-      </p>
-      <Show when={error()}>
+      <p class="form-help">{t("searchHelp")}</p>
+      <Show when={hasError()}>
         <div class="form-error" role="alert">
-          {error()}
+          {t("searchNeedsName")}
         </div>
       </Show>
       <div class="form-actions">
         <button class="button primary" type="submit">
           <Icon name="search" size={19} />
-          Buscar registros
+          {t("searchRecords")}
           <Icon name="arrow" size={18} />
         </button>
         <button
@@ -278,10 +298,10 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
                 string
               >,
             );
-            setError("");
+            setHasError(false);
           }}
         >
-          Limpar campos
+          {t("clearFields")}
         </button>
       </div>
     </form>
@@ -296,23 +316,19 @@ function Home() {
           <div class="hero-copy">
             <div class="eyebrow">
               <span class="eyebrow-dot" />
-              MEMÓRIA DA IMIGRAÇÃO JAPONESA
+              {t("homeEyebrow")}
             </div>
             <h1>
-              Um nome pode abrir
+              {t("homeTitleFirst")}
               <br />
-              <em>muitos caminhos.</em>
+              <em>{t("homeTitleSecond")}</em>
             </h1>
-            <p>
-              Explore registros de pessoas que vieram do Japão ao Brasil.
-              Encontre nomes, viagens e lugares de origem para seguir sua
-              pesquisa.
-            </p>
+            <p>{t("homeIntroduction")}</p>
           </div>
           <div class="hero-art">
             <img
               src="/ak.jpeg"
-              alt="Ashiato Kai: caligrafia japonesa, pegadas e paisagens do Japão e do Brasil"
+              alt={t("artworkAlt")}
               width="1024"
               height="1024"
               fetchpriority="high"
@@ -321,9 +337,9 @@ function Home() {
         </section>
         <section class="search-section">
           <div class="section-heading">
-            <span class="section-index">01 / COMEÇAR</span>
-            <h2>Quem você procura?</h2>
-            <p>Pesquise pelo nome registrado nos documentos de imigração.</p>
+            <span class="section-index">{t("startSection")}</span>
+            <h2>{t("whoSearch")}</h2>
+            <p>{t("searchIntroduction")}</p>
           </div>
           <div class="surface search-surface">
             <SearchForm />
@@ -331,18 +347,17 @@ function Home() {
         </section>
         <section class="explore-section">
           <div class="section-heading">
-            <span class="section-index">02 / EXPLORAR</span>
-            <h2>Outras formas de descobrir</h2>
+            <span class="section-index">{t("exploreSection")}</span>
+            <h2>{t("otherWays")}</h2>
           </div>
           <div class="explore-grid">
             <A href="/statistics/surnames" class="explore-card">
-              <span class="explore-icon">姓</span>
+              <span class="explore-icon" lang="ja" translate="no">
+                姓
+              </span>
               <div>
-                <h3>Sobrenomes</h3>
-                <p>
-                  Conheça os sobrenomes mais frequentes e suas grafias em
-                  japonês.
-                </p>
+                <h3>{t("surnames")}</h3>
+                <p>{t("surnamesDescription")}</p>
               </div>
               <Icon name="arrow" />
             </A>
@@ -351,8 +366,8 @@ function Home() {
                 <Icon name="map" size={27} />
               </span>
               <div>
-                <h3>Lugares de origem</h3>
-                <p>Veja as províncias de origem registradas na base.</p>
+                <h3>{t("origins")}</h3>
+                <p>{t("originsDescription")}</p>
               </div>
               <Icon name="arrow" />
             </A>
@@ -365,46 +380,51 @@ function Home() {
 
 function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
   const [group] = createResource(() => props.record.groupID, getGroup);
-  const fields = [
-    [
-      "Nome em romaji",
-      `${props.record.NameRomaji} ${props.record.SurnameRomaji}`,
-    ],
-    [
-      "Nome em japonês",
-      `${readable(props.record.SurnameKanji)} ${readable(props.record.NameKanji)}`,
-    ],
-    ["Ano de chegada", props.record.Year],
-    ["Província", props.record.PrefectureName],
-    ["Navio", props.record.ShipName],
-    ["Partida", props.record.DepartureDate],
-    ["Chegada", props.record.ArrivalDate],
-    ["Destino", props.record.Destination],
-    ["Fazenda", props.record.Farm],
-  ] as const;
+  const fields = createMemo(
+    () =>
+      [
+        [
+          "romajiName",
+          `${props.record.NameRomaji} ${props.record.SurnameRomaji}`,
+        ],
+        [
+          "japaneseName",
+          `${readable(props.record.SurnameKanji)} ${readable(props.record.NameKanji)}`,
+        ],
+        ["arrivalYear", props.record.Year],
+        ["prefecture", props.record.PrefectureName],
+        ["ship", props.record.ShipName],
+        ["departure", props.record.DepartureDate],
+        ["arrival", props.record.ArrivalDate],
+        ["destination", props.record.Destination],
+        ["farm", props.record.Farm],
+      ] as const,
+  );
   return (
     <div class="detail-overlay" onClick={props.onClose}>
       <section
         class="detail-panel"
         role="dialog"
         aria-modal="true"
-        aria-label={`Registro de ${props.record.NameRomaji} ${props.record.SurnameRomaji}`}
+        aria-label={t("recordDialog", {
+          name: `${props.record.NameRomaji} ${props.record.SurnameRomaji}`,
+        })}
         onClick={(event) => event.stopPropagation()}
       >
         <div class="detail-top">
           <div>
-            <span class="section-index">REGISTRO DE IMIGRAÇÃO</span>
-            <h2>
+            <span class="section-index">{t("recordEyebrow")}</span>
+            <h2 translate="no">
               {props.record.NameRomaji} {props.record.SurnameRomaji}
             </h2>
-            <p class="japanese-name" lang="ja">
+            <p class="japanese-name" lang="ja" translate="no">
               {props.record.SurnameKanji} {props.record.NameKanji}
             </p>
           </div>
           <button
             class="icon-button"
             onClick={props.onClose}
-            aria-label="Fechar detalhes"
+            aria-label={t("closeDetails")}
           >
             <Icon name="close" />
           </button>
@@ -414,23 +434,25 @@ function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
             <span class="detail-intro-icon">
               <Icon name="person" size={29} />
             </span>
-            <p>
-              Este registro é uma pista para sua pesquisa. Confira os detalhes
-              com outras fontes antes de estabelecer uma ligação familiar.
-            </p>
+            <p>{t("recordCaution")}</p>
           </div>
-          <h3>Dados do registro</h3>
+          <h3>{t("recordData")}</h3>
           <dl class="facts">
-            <For each={fields}>
+            <For each={fields()}>
               {([label, value]) => (
                 <div>
-                  <dt>{label}</dt>
-                  <dd>{readable(value)}</dd>
+                  <dt>{t(label)}</dt>
+                  <dd
+                    lang={label === "japaneseName" ? "ja" : undefined}
+                    translate="no"
+                  >
+                    {readable(value)}
+                  </dd>
                 </div>
               )}
             </For>
           </dl>
-          <h3>Grupo de viagem</h3>
+          <h3>{t("travelGroup")}</h3>
           <Suspense fallback={<Loading />}>
             <Show when={group.error}>
               <ErrorBox error={group.error} />
@@ -439,29 +461,28 @@ function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
               {(data) => (
                 <div class="group-card">
                   <p>
-                    {data().immigrants.length}{" "}
-                    {data().immigrants.length === 1
-                      ? "pessoa registrada"
-                      : "pessoas registradas"}{" "}
-                    no mesmo grupo de viagem
+                    {t(
+                      data().immigrants.length === 1
+                        ? "groupCountOne"
+                        : "groupCountMany",
+                      { count: formatCount(data().immigrants.length) },
+                    )}
                   </p>
                   <ul>
                     <For each={data().immigrants}>
                       {(person) => (
                         <li>
-                          <strong>
+                          <strong translate="no">
                             {person.NameRomaji} {person.SurnameRomaji}
                           </strong>
-                          <span lang="ja">
+                          <span lang="ja" translate="no">
                             {person.SurnameKanji} {person.NameKanji}
                           </span>
                         </li>
                       )}
                     </For>
                   </ul>
-                  <small>
-                    Viajar no mesmo grupo não indica, por si só, parentesco.
-                  </small>
+                  <small>{t("groupCaution")}</small>
                 </div>
               )}
             </Show>
@@ -496,23 +517,25 @@ function Results() {
     <Layout>
       <div class="page results-page">
         <div class="page-heading">
-          <BackLink href="/" label="Nova pesquisa" />
-          <span class="section-index">RESULTADOS DA PESQUISA</span>
-          <h1>Histórias encontradas.</h1>
-          <p>Registros que correspondem aos termos pesquisados.</p>
+          <BackLink href="/" label={t("newSearch")} />
+          <span class="section-index">{t("resultsEyebrow")}</span>
+          <h1>{t("resultsTitle")}</h1>
+          <p>{t("resultsDescription")}</p>
         </div>
         <div class="results-layout">
           <aside class="surface filter-panel">
             <div class="aside-heading">
-              <h2>Refinar pesquisa</h2>
-              <span class="filter-japanese">検索</span>
+              <h2>{t("refineSearch")}</h2>
+              <span class="filter-japanese" lang="ja" translate="no">
+                検索
+              </span>
               <button
                 class="filter-toggle"
                 type="button"
                 aria-expanded={filtersOpen()}
                 onClick={() => setFiltersOpen((value) => !value)}
               >
-                {filtersOpen() ? "Ocultar" : "Abrir filtros"}
+                {filtersOpen() ? t("hideFilters") : t("openFilters")}
               </button>
             </div>
             <div class={`filter-form ${filtersOpen() ? "open" : ""}`}>
@@ -528,17 +551,19 @@ function Results() {
                 {(data) => (
                   <>
                     <div class="result-count">
-                      <strong>{formatCount(data().length)}</strong>{" "}
-                      {data().length === 1
-                        ? "registro encontrado"
-                        : "registros encontrados"}
+                      {t(
+                        data().length === 1
+                          ? "resultsCountOne"
+                          : "resultsCountMany",
+                        { count: formatCount(data().length) },
+                      )}
                     </div>
                     <Show
                       when={data().length}
                       fallback={
                         <Empty
-                          title="Nenhum registro encontrado"
-                          body="Tente outra grafia ou retire um dos filtros da pesquisa."
+                          title={t("noResults")}
+                          body={t("noResultsHelp")}
                         />
                       }
                     >
@@ -553,20 +578,28 @@ function Results() {
                                 })
                               }
                             >
-                              <span class="result-avatar" lang="ja">
+                              <span
+                                class="result-avatar"
+                                lang="ja"
+                                translate="no"
+                              >
                                 {record.SurnameKanji?.[0] || "人"}
                               </span>
                               <span class="result-main">
-                                <strong>
+                                <strong translate="no">
                                   {record.NameRomaji} {record.SurnameRomaji}
                                 </strong>
-                                <small>
+                                <small translate="no">
                                   {record.Year} <i>·</i>{" "}
                                   {readable(record.PrefectureName)} <i>·</i>{" "}
                                   {readable(record.ShipName)}
                                 </small>
                               </span>
-                              <span class="result-japanese" lang="ja">
+                              <span
+                                class="result-japanese"
+                                lang="ja"
+                                translate="no"
+                              >
                                 {record.SurnameKanji} {record.NameKanji}
                               </span>
                               <Icon name="arrow" size={18} />
@@ -579,14 +612,11 @@ function Results() {
                           class="load-more"
                           onClick={() => setVisibleCount((count) => count + 50)}
                         >
-                          Mostrar mais registros <Icon name="arrow" size={16} />
+                          {t("showMore")} <Icon name="arrow" size={16} />
                         </button>
                       </Show>
                     </Show>
-                    <p class="result-note">
-                      Um nome semelhante não confirma identidade ou
-                      ancestralidade. Compare outras informações do registro.
-                    </p>
+                    <p class="result-note">{t("resultsCaution")}</p>
                   </>
                 )}
               </Show>
@@ -604,23 +634,23 @@ function Results() {
 const categories = [
   {
     kind: "surnames",
-    title: "Sobrenomes",
-    body: "Grafias e sobrenomes mais frequentes",
+    titleKey: "surnames",
+    bodyKey: "surnamesShortDescription",
     glyph: "姓",
   },
   {
     kind: "names",
-    title: "Nomes",
-    body: "Nomes próprios presentes nos registros",
+    titleKey: "givenNames",
+    bodyKey: "givenNamesDescription",
     glyph: "名",
   },
   {
     kind: "prefectures",
-    title: "Províncias",
-    body: "Lugares de origem no Japão",
+    titleKey: "prefectures",
+    bodyKey: "prefecturesDescription",
     glyph: "県",
   },
-];
+] as const;
 
 function StatisticsHome() {
   const [prefectures] = createResource(topPrefectures);
@@ -628,30 +658,30 @@ function StatisticsHome() {
     <Layout>
       <div class="page statistics-home">
         <div class="page-heading">
-          <span class="section-index">UM OLHAR SOBRE OS REGISTROS</span>
-          <h1>Histórias em números.</h1>
-          <p>
-            Explore nomes e lugares registrados na imigração japonesa ao Brasil.
-          </p>
+          <span class="section-index">{t("statsEyebrow")}</span>
+          <h1>{t("statsTitle")}</h1>
+          <p>{t("statsDescription")}</p>
         </div>
         <div class="stat-hero">
           <div>
-            <span class="stat-hero-label">CADA REGISTRO GUARDA UM CAMINHO</span>
-            <strong>245.677</strong>
-            <p>registros de imigrantes na base consultada</p>
+            <span class="stat-hero-label">{t("statsHeroEyebrow")}</span>
+            <strong>{formatCount(245677)}</strong>
+            <p>{t("statsHeroCount")}</p>
           </div>
-          <span lang="ja">縁</span>
+          <span lang="ja" translate="no">
+            縁
+          </span>
         </div>
         <div class="category-grid">
           <For each={categories}>
             {(category) => (
               <A href={`/statistics/${category.kind}`} class="category-card">
-                <span class="category-glyph" lang="ja">
+                <span class="category-glyph" lang="ja" translate="no">
                   {category.glyph}
                 </span>
                 <span class="category-text">
-                  <strong>{category.title}</strong>
-                  <small>{category.body}</small>
+                  <strong>{t(category.titleKey)}</strong>
+                  <small>{t(category.bodyKey)}</small>
                 </span>
                 <Icon name="arrow" />
               </A>
@@ -661,11 +691,11 @@ function StatisticsHome() {
         <section class="preview-section">
           <div class="section-heading inline">
             <div>
-              <span class="section-index">LUGARES DE ORIGEM</span>
-              <h2>De onde vieram?</h2>
+              <span class="section-index">{t("originEyebrow")}</span>
+              <h2>{t("whereFrom")}</h2>
             </div>
             <A href="/statistics/prefectures" class="text-link">
-              Ver todas <Icon name="arrow" size={16} />
+              {t("viewAll")} <Icon name="arrow" size={16} />
             </A>
           </div>
           <Suspense fallback={<Loading />}>
@@ -678,8 +708,12 @@ function StatisticsHome() {
                         href={`/statistics/prefectures/${encodeURIComponent(item.PrefectureName)}`}
                       >
                         <span>{String(item.Rank).padStart(2, "0")}</span>
-                        <strong>{item.PrefectureName}</strong>
-                        <small>{formatCount(item.Count)} registros</small>
+                        <strong translate="no">{item.PrefectureName}</strong>
+                        <small>
+                          {t("recordsCount", {
+                            count: formatCount(item.Count),
+                          })}
+                        </small>
                         <Icon name="arrow" size={16} />
                       </A>
                     )}
@@ -724,23 +758,23 @@ function StatList() {
     <Layout>
       <div class="page narrow-page">
         <div class="page-heading">
-          <BackLink href="/statistics" label="Estatísticas" />
-          <span class="section-index">ESTATÍSTICAS / TOP 10</span>
+          <BackLink href="/statistics" label={t("statistics")} />
+          <span class="section-index">{t("statsTopTen")}</span>
           <h1>
-            {config()?.title || "Estatísticas"}
+            {config() ? t(config()!.titleKey) : t("statistics")}
             <span class="accent-period">.</span>
           </h1>
-          <p>{config()?.body}.</p>
+          <p>{config() ? t(config()!.bodyKey) : ""}.</p>
         </div>
         <div class="list-toolbar">
-          <span>OS 10 MAIS FREQUENTES</span>
+          <span>{t("topTenLabel")}</span>
           <label>
             <Icon name="search" size={17} />
             <input
               value={filter()}
               onInput={(event) => setFilter(event.currentTarget.value)}
-              placeholder="Filtrar esta lista"
-              aria-label="Filtrar esta lista"
+              placeholder={t("filterList")}
+              aria-label={t("filterList")}
             />
           </label>
         </div>
@@ -773,10 +807,14 @@ function StatList() {
                         {String(item.Rank).padStart(2, "0")}
                       </span>
                       <span class="rank-name">
-                        <strong>{name}</strong>
-                        <small>{formatCount(item.Count)} registros</small>
+                        <strong translate="no">{name}</strong>
+                        <small>
+                          {t("recordsCount", {
+                            count: formatCount(item.Count),
+                          })}
+                        </small>
                       </span>
-                      <span class="rank-kanji" lang="ja">
+                      <span class="rank-kanji" lang="ja" translate="no">
                         {japanese}
                       </span>
                       <Icon name="arrow" size={18} />
@@ -785,18 +823,12 @@ function StatList() {
                 }}
               </For>
               <Show when={!filtered().length}>
-                <Empty
-                  title="Nada nesta lista"
-                  body="Experimente outro termo para filtrar o top 10."
-                />
+                <Empty title={t("emptyTopTen")} body={t("emptyTopTenHelp")} />
               </Show>
             </div>
           </Show>
         </Suspense>
-        <p class="result-note">
-          As contagens se referem aos registros desta base, não a todas as
-          famílias ou pessoas de origem japonesa no Brasil.
-        </p>
+        <p class="result-note">{t("statsCaution")}</p>
       </div>
     </Layout>
   );
@@ -845,7 +877,7 @@ function MapGraphic(props: { data: Geolocation }) {
   });
   return (
     <div class="map-card">
-      <svg viewBox="0 0 800 480" role="img" aria-label="Mapa da província">
+      <svg viewBox="0 0 800 480" role="img" aria-label={t("mapAlt")}>
         <For each={paths()}>
           {(path) => (
             <path
@@ -875,8 +907,11 @@ function MapGraphic(props: { data: Geolocation }) {
       <Show when={capital()}>
         {(feature) => (
           <div class="map-caption">
-            Capital · {feature().properties.CapitalName}{" "}
-            <span lang="ja">{feature().properties.CapitalNameJapanese}</span>
+            {t("capital")} ·{" "}
+            <span translate="no">{feature().properties.CapitalName}</span>{" "}
+            <span lang="ja" translate="no">
+              {feature().properties.CapitalNameJapanese}
+            </span>
           </div>
         )}
       </Show>
@@ -888,12 +923,14 @@ function StatDetail() {
   const route = useParams<{ kind: string; term: string }>();
   const kind = () => route.kind;
   const term = () => decodeURIComponent(route.term);
-  const title = () =>
-    kind() === "names"
-      ? "Nome"
-      : kind() === "surnames"
-        ? "Sobrenome"
-        : "Província";
+  const categoryName = () =>
+    t(
+      kind() === "names"
+        ? "givenNames"
+        : kind() === "surnames"
+          ? "surnames"
+          : "prefectures",
+    );
   const [stats] = createResource<
     (NameStat | SurnameStat | PrefectureStat)[],
     string
@@ -916,14 +953,18 @@ function StatDetail() {
         <div class="page-heading">
           <BackLink
             href={`/statistics/${kind()}`}
-            label={`Voltar para ${title().toLowerCase()}s`}
+            label={t("backToCategory", {
+              category: categoryName().toLowerCase(),
+            })}
           />
-          <span class="section-index">{title().toUpperCase()} / DETALHES</span>
+          <span class="section-index">
+            {t("detailEyebrow", { category: categoryName().toUpperCase() })}
+          </span>
           <h1>
-            {term()}
+            <span translate="no">{term()}</span>
             <span class="accent-period">.</span>
           </h1>
-          <p>Grafias e informações encontradas nos registros.</p>
+          <p>{t("detailDescription")}</p>
         </div>
         <Suspense fallback={<Loading />}>
           <Show when={stats.error}>
@@ -933,20 +974,15 @@ function StatDetail() {
             {(data) => (
               <Show
                 when={data().length}
-                fallback={
-                  <Empty
-                    title="Nenhum dado encontrado"
-                    body="Confira a grafia e tente novamente."
-                  />
-                }
+                fallback={<Empty title={t("noData")} body={t("noDataHelp")} />}
               >
                 <div class="variant-list">
                   <For each={data()}>
                     {(item) => (
                       <div class="variant-card">
                         <div class="variant-info">
-                          <span>GRAFIA REGISTRADA</span>
-                          <strong>
+                          <span>{t("recordedSpelling")}</span>
+                          <strong translate="no">
                             {"PrefectureName" in item
                               ? item.PrefectureName
                               : "SurnameRomaji" in item
@@ -954,14 +990,16 @@ function StatDetail() {
                                 : item.NameRomaji}
                           </strong>
                           <small>
-                            {formatCount(item.Count)} registros <i>·</i> posição
-                            #{formatCount(item.Rank)}
+                            {t("rankCount", {
+                              count: formatCount(item.Count),
+                              rank: formatCount(item.Rank),
+                            })}
                           </small>
                         </div>
                         <Show
                           when={"SurnameKanji" in item || "NameKanji" in item}
                         >
-                          <span class="variant-kanji" lang="ja">
+                          <span class="variant-kanji" lang="ja" translate="no">
                             {"SurnameKanji" in item
                               ? item.SurnameKanji
                               : "NameKanji" in item
@@ -980,8 +1018,8 @@ function StatDetail() {
         <Show when={kind() === "prefectures"}>
           <section class="geo-section">
             <div class="section-heading">
-              <span class="section-index">NO MAPA</span>
-              <h2>Onde fica {term()}?</h2>
+              <span class="section-index">{t("onMap")}</span>
+              <h2>{t("whereIs", { name: term() })}</h2>
             </div>
             <Suspense fallback={<Loading />}>
               <Show when={geo()}>{(data) => <MapGraphic data={data()} />}</Show>
@@ -989,12 +1027,10 @@ function StatDetail() {
           </section>
         </Show>
         <div class="context-note">
-          <span>大切なこと</span>
-          <p>
-            Grafias semelhantes podem representar pessoas diferentes. Use estes
-            dados como ponto de partida e confirme as informações com outras
-            fontes.
-          </p>
+          <span lang="ja" translate="no">
+            大切なこと
+          </span>
+          <p>{t("detailCaution")}</p>
         </div>
       </div>
     </Layout>
@@ -1006,11 +1042,11 @@ function NotFound() {
     <Layout>
       <div class="page narrow-page">
         <div class="page-heading">
-          <span class="section-index">PÁGINA NÃO ENCONTRADA</span>
-          <h1>Este caminho não existe.</h1>
-          <p>Volte ao início para continuar sua pesquisa.</p>
+          <span class="section-index">{t("notFoundEyebrow")}</span>
+          <h1>{t("notFoundTitle")}</h1>
+          <p>{t("notFoundDescription")}</p>
           <A href="/" class="button primary">
-            Ir para o início <Icon name="arrow" />
+            {t("goHome")} <Icon name="arrow" />
           </A>
         </div>
       </div>
@@ -1018,8 +1054,15 @@ function NotFound() {
   );
 }
 
-render(
-  () => (
+function AppRoot() {
+  createEffect(() => {
+    document.documentElement.lang = locale();
+    document.title = t("pageTitle");
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", t("pageDescription"));
+  });
+  return (
     <Router>
       <Route path="/" component={Home} />
       <Route path="/search" component={Results} />
@@ -1028,6 +1071,7 @@ render(
       <Route path="/statistics/:kind/:term" component={StatDetail} />
       <Route path="*" component={NotFound} />
     </Router>
-  ),
-  document.getElementById("root")!,
-);
+  );
+}
+
+render(() => <AppRoot />, document.getElementById("root")!);
