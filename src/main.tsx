@@ -369,7 +369,7 @@ function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
     ],
     [
       "Nome em japonês",
-      `${readable(props.record.NameKanji)} ${readable(props.record.SurnameKanji)}`,
+      `${readable(props.record.SurnameKanji)} ${readable(props.record.NameKanji)}`,
     ],
     ["Ano de chegada", props.record.Year],
     ["Província", props.record.PrefectureName],
@@ -472,6 +472,7 @@ function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
 function Results() {
   const [search, setSearch] = useSearchParams();
   const [visibleCount, setVisibleCount] = createSignal(50);
+  const [filtersOpen, setFiltersOpen] = createSignal(false);
   const params = createMemo(() => {
     const query = new URLSearchParams();
     for (const key of searchKeys) {
@@ -501,9 +502,19 @@ function Results() {
           <aside class="surface filter-panel">
             <div class="aside-heading">
               <h2>Refinar pesquisa</h2>
-              <span>検索</span>
+              <span class="filter-japanese">検索</span>
+              <button
+                class="filter-toggle"
+                type="button"
+                aria-expanded={filtersOpen()}
+                onClick={() => setFiltersOpen((value) => !value)}
+              >
+                {filtersOpen() ? "Ocultar" : "Abrir filtros"}
+              </button>
             </div>
-            <SearchForm initial={params()} compact />
+            <div class={`filter-form ${filtersOpen() ? "open" : ""}`}>
+              <SearchForm initial={params()} compact />
+            </div>
           </aside>
           <section class="result-list">
             <Suspense fallback={<Loading />}>

@@ -1366,11 +1366,34 @@ main {
 .load-more:hover {
   background: #f7ede4;
 }
+.filter-toggle {
+  display: none;
+  border: 0;
+  background: transparent;
+  color: #a84938;
+  font-size: 12px;
+  font-weight: 700;
+}
 @media (max-width: 680px) {
-  .filter-panel .search-form {
+  .filter-panel .filter-form {
+    display: none;
+  }
+  .filter-panel .filter-form.open {
     display: block;
   }
+  .filter-panel .filter-form.open .search-form {
+    display: block;
+  }
+  .filter-toggle {
+    display: inline-block;
+  }
+  .filter-japanese {
+    display: none;
+  }
   .filter-panel .aside-heading {
-    margin-bottom: 15px;
+    margin-bottom: 0;
+  }
+  .filter-panel .filter-form.open {
+    padding-top: 15px;
   }
 }
