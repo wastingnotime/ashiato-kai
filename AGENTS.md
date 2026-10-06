@@ -1,9 +1,12 @@
 # Repository Guidelines
 
-This repository is a WNT-managed repository.
+This repository is a WNT-managed repository for the public Ashiato Kai web frontend.
 
 ## Repository Role
 
+- Own the browser experience for researching Japanese immigration records in Brazil.
+- Consume the separate Ashiato Kai API for records, statistics, and geography.
+- Use the existing iPhone and iPad applications as visual references while adapting layouts for the web.
 - Own repository-specific product or domain truth.
 - Keep shared WNT guidance in user-space capabilities and the WNT MCP surface.
 - Keep durable repository decisions in Markdown.
