@@ -203,46 +203,17 @@ main {
   max-width: 530px;
 }
 .hero-art {
-  height: 380px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 400px;
+  min-width: 0;
+  display: grid;
+  place-items: center;
 }
-.sun {
-  width: 290px;
-  height: 290px;
-  border-radius: 50%;
-  background: #d9a990;
-  position: absolute;
-  right: 40px;
-  top: 15px;
-  box-shadow: inset -26px -25px 0 #d5a188;
-}
-.kanji-one,
-.kanji-two {
-  position: absolute;
-  font-family: "Noto Sans JP", sans-serif;
-  font-weight: 400;
-  font-size: 145px;
-  color: #322c28;
-  line-height: 1;
-}
-.kanji-one {
-  top: 40px;
-  right: 155px;
-}
-.kanji-two {
-  top: 160px;
-  right: 44px;
-}
-.art-caption {
-  position: absolute;
-  bottom: 16px;
-  right: 32px;
-  color: #8c776d;
-  font-size: 10px;
-  letter-spacing: 0.22em;
+.hero-art img {
+  display: block;
+  width: min(100%, 440px);
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
 }
 .search-section {
   margin-top: 48px;
@@ -1063,8 +1034,10 @@ main {
     grid-template-columns: 1.2fr 0.8fr;
   }
   .hero-art {
-    transform: scale(0.8);
-    transform-origin: center right;
+    height: 330px;
+  }
+  .hero-art img {
+    max-height: 330px;
   }
   .results-layout {
     grid-template-columns: 270px minmax(0, 1fr);
@@ -1121,32 +1094,12 @@ main {
     line-height: 1.65;
   }
   .hero-art {
-    height: 210px;
-    transform: none;
-    margin-top: 2px;
+    height: 280px;
+    margin-top: 8px;
   }
-  .sun {
-    width: 178px;
-    height: 178px;
-    right: 50px;
-    top: 8px;
-  }
-  .kanji-one,
-  .kanji-two {
-    font-size: 88px;
-  }
-  .kanji-one {
-    top: 28px;
-    right: 125px;
-  }
-  .kanji-two {
-    top: 94px;
-    right: 48px;
-  }
-  .art-caption {
-    bottom: 5px;
-    right: 36px;
-    font-size: 8px;
+  .hero-art img {
+    width: min(76vw, 280px);
+    max-height: 280px;
   }
   .search-section {
     margin-top: 35px;

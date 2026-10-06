@@ -309,11 +309,14 @@ function Home() {
               pesquisa.
             </p>
           </div>
-          <div class="hero-art" aria-hidden="true">
-            <div class="sun" />
-            <span class="kanji-one">足</span>
-            <span class="kanji-two">跡</span>
-            <span class="art-caption">ASHIATO · PEGADAS</span>
+          <div class="hero-art">
+            <img
+              src="/ak.jpeg"
+              alt="Ashiato Kai: caligrafia japonesa, pegadas e paisagens do Japão e do Brasil"
+              width="1024"
+              height="1024"
+              fetchpriority="high"
+            />
           </div>
         </section>
         <section class="search-section">
