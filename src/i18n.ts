@@ -117,6 +117,8 @@ const ptBR = {
   backToCategory: "Voltar para {{category}}",
   detailEyebrow: "{{category}} / DETALHES",
   detailDescription: "Grafias e informações encontradas nos registros.",
+  selectedSpellingDescription:
+    "Informações da grafia selecionada nos registros.",
   noData: "Nenhum dado encontrado",
   noDataHelp: "Confira a grafia e tente novamente.",
   recordedSpelling: "GRAFIA REGISTRADA",
@@ -246,6 +248,7 @@ const enUS: { [K in keyof typeof ptBR]: string } = {
   backToCategory: "Back to {{category}}",
   detailEyebrow: "{{category}} / DETAILS",
   detailDescription: "Recorded spellings and details found in the dataset.",
+  selectedSpellingDescription: "Details for the selected recorded spelling.",
   noData: "No data found",
   noDataHelp: "Check the spelling and try again.",
   recordedSpelling: "RECORDED SPELLING",

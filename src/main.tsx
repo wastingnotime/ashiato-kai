@@ -804,7 +804,7 @@ function StatList() {
                         : "";
                   return (
                     <A
-                      href={`/statistics/${kind()}/${encodeURIComponent(name)}`}
+                      href={`/statistics/${kind()}/${encodeURIComponent(name)}${japanese ? `?spelling=${encodeURIComponent(japanese)}` : ""}`}
                       class="ranking-row"
                     >
                       <span class="rank-number">
@@ -925,8 +925,11 @@ function MapGraphic(props: { data: Geolocation }) {
 
 function StatDetail() {
   const route = useParams<{ kind: string; term: string }>();
+  const [searchParams] = useSearchParams();
   const kind = () => route.kind;
   const term = () => decodeURIComponent(route.term);
+  const spelling = () =>
+    typeof searchParams.spelling === "string" ? searchParams.spelling : null;
   const categoryName = () =>
     t(
       kind() === "names"
@@ -951,6 +954,16 @@ function StatDetail() {
     () => (kind() === "prefectures" ? term() : null),
     (name) => prefectureGeo(name),
   );
+  const visibleStats = createMemo(() => {
+    const rows = stats() || [];
+    const selected = spelling();
+    if (selected === null || kind() === "prefectures") return rows;
+    return rows.filter((item) =>
+      "NameKanji" in item
+        ? item.NameKanji === selected
+        : "SurnameKanji" in item && item.SurnameKanji === selected,
+    );
+  });
   return (
     <Layout>
       <div class="page narrow-page">
@@ -968,20 +981,26 @@ function StatDetail() {
             <span translate="no">{term()}</span>
             <span class="accent-period">.</span>
           </h1>
-          <p>{t("detailDescription")}</p>
+          <p>
+            {t(
+              spelling() === null
+                ? "detailDescription"
+                : "selectedSpellingDescription",
+            )}
+          </p>
         </div>
         <Suspense fallback={<Loading />}>
           <Show when={stats.error}>
             <ErrorBox error={stats.error} />
           </Show>
           <Show when={stats()}>
-            {(data) => (
+            {(_data) => (
               <Show
-                when={data().length}
+                when={visibleStats().length}
                 fallback={<Empty title={t("noData")} body={t("noDataHelp")} />}
               >
                 <div class="variant-list">
-                  <For each={data()}>
+                  <For each={visibleStats()}>
                     {(item) => (
                       <div class="variant-card">
                         <div class="variant-info">

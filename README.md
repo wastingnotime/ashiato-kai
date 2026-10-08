@@ -22,6 +22,8 @@ Vite proxies `/web-api/*` to the deployed API during local development. No API c
 
 The frontend offers immigrant search, record and travel-group details, ranked names, surnames and prefectures, and a map for prefecture detail pages. Its visual direction comes from the existing iPhone and iPad apps.
 
+Name and surname rankings count each Romaji and Japanese-script spelling pair separately. Opening a ranked row selects that exact spelling in the detail URL; a detail URL without `spelling` still shows all recorded variants for the Romaji name.
+
 The interface has maintained Brazilian Portuguese and US English catalogs in `src/i18n.ts`. The initial choice follows a saved preference or the browser's preferred languages, with Portuguese as the fallback. Visitors can switch languages in the header; their choice is saved locally. Recorded names and Japanese script are displayed as supplied by the API and are not translated.
 
 The API currently returns all search matches without pagination. The interface requires a name or surname to keep searches focused. A record match and a shared travel group are research leads, not proof of identity, ancestry or family relationship.
