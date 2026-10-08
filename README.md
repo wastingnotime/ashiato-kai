@@ -25,3 +25,9 @@ The frontend offers immigrant search, record and travel-group details, ranked na
 The interface has maintained Brazilian Portuguese and US English catalogs in `src/i18n.ts`. The initial choice follows a saved preference or the browser's preferred languages, with Portuguese as the fallback. Visitors can switch languages in the header; their choice is saved locally. Recorded names and Japanese script are displayed as supplied by the API and are not translated.
 
 The API currently returns all search matches without pagination. The interface requires a name or surname to keep searches focused. A record match and a shared travel group are research leads, not proof of identity, ancestry or family relationship.
+
+## Japanese stroke order
+
+Record details and name/surname statistics include an expandable stroke-order viewer. Select a kanji or kana, play or replay its writing animation, or use Previous/Next to inspect each stroke. Playback starts only on request and respects reduced-motion preferences. Controls are available in both interface languages.
+
+The viewer uses the same AnimCJK geometry bundled by the iOS app, with 7,184 characters served as local, per-character JSON assets. It requires no API changes or third-party requests. Missing characters and failed loads display a localized fallback with retry. See [data provenance and licenses](public/strokes/README.md) and the [import script](scripts/import-strokes.py).

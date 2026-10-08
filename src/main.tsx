@@ -33,6 +33,7 @@ import {
 } from "./api";
 import { formatCount, locale, readable, setLocale, t } from "./i18n";
 import "./style.css";
+import { StrokeOrder } from "./StrokeOrder";
 
 const labelKeys = {
   NameRomaji: "name",
@@ -436,6 +437,9 @@ function RecordDetail(props: { record: Immigrant; onClose: () => void }) {
             </span>
             <p>{t("recordCaution")}</p>
           </div>
+          <StrokeOrder
+            text={`${props.record.SurnameKanji || ""}${props.record.NameKanji || ""}`}
+          />
           <h3>{t("recordData")}</h3>
           <dl class="facts">
             <For each={fields()}>
@@ -1007,6 +1011,15 @@ function StatDetail() {
                                 : ""}
                           </span>
                         </Show>
+                        <StrokeOrder
+                          text={
+                            "SurnameKanji" in item
+                              ? item.SurnameKanji
+                              : "NameKanji" in item
+                                ? item.NameKanji
+                                : ""
+                          }
+                        />
                       </div>
                     )}
                   </For>

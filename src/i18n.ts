@@ -5,6 +5,21 @@ export type Locale = "pt-BR" | "en-US";
 const preferenceKey = "ashiato-kai-locale";
 
 const ptBR = {
+  strokeTitle: "Ordem dos traços",
+  strokeHelp: "Escolha um caractere para acompanhar sua escrita.",
+  strokeSelect: "Escolher caractere",
+  strokeLoading: "Carregando traços…",
+  strokeUnavailable: "Traços indisponíveis para {{character}}.",
+  strokeRetry: "Tentar novamente",
+  strokeImage: "Ordem dos traços de {{character}}",
+  strokeProgress: "{{current}} de {{total}} traços",
+  strokePrevious: "Anterior",
+  strokeNext: "Próximo",
+  strokePlay: "Reproduzir",
+  strokePause: "Pausar",
+  strokeReplay: "Repetir",
+  strokeReset: "Reiniciar",
+
   pageTitle: "Ashiato Kai — Caminhos de origem",
   pageDescription:
     "Pesquise registros da imigração japonesa no Brasil e descubra nomes, viagens e lugares de origem.",
@@ -124,6 +139,21 @@ const ptBR = {
 };
 
 const enUS: { [K in keyof typeof ptBR]: string } = {
+  strokeTitle: "Stroke order",
+  strokeHelp: "Choose a character to follow how it is written.",
+  strokeSelect: "Choose a character",
+  strokeLoading: "Loading strokes…",
+  strokeUnavailable: "Stroke data is unavailable for {{character}}.",
+  strokeRetry: "Try again",
+  strokeImage: "Stroke order for {{character}}",
+  strokeProgress: "{{current}} of {{total}} strokes",
+  strokePrevious: "Previous",
+  strokeNext: "Next",
+  strokePlay: "Play",
+  strokePause: "Pause",
+  strokeReplay: "Replay",
+  strokeReset: "Reset",
+
   pageTitle: "Ashiato Kai — Paths to your origins",
   pageDescription:
     "Search Japanese immigration records in Brazil and discover names, journeys, and places of origin.",

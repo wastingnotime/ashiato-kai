@@ -1383,3 +1383,95 @@ main {
     padding-top: 15px;
   }
 }
+
+.stroke-order {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #ded7ca;
+  border-radius: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.stroke-order summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.stroke-order p {
+  margin: 16px 0;
+}
+.stroke-characters,
+.stroke-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.stroke-order button {
+  background: #faf7f0;
+  color: inherit;
+  border: 1px solid #c9c2b6;
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.stroke-order button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.stroke-order button:focus-visible,
+.stroke-order summary:focus-visible {
+  outline: 2px solid #a34232;
+  outline-offset: 3px;
+}
+.stroke-characters button {
+  font-size: 24px;
+}
+.stroke-characters button[aria-pressed="true"] {
+  background: #252824;
+  color: #fff;
+}
+.stroke-canvas {
+  display: block;
+  width: min(100%, 240px);
+  margin: 16px 0;
+  border: 1px solid #ded7ca;
+  background: #faf7f0;
+}
+.stroke-grid {
+  fill: none;
+  stroke: #ded7ca;
+  stroke-width: 3;
+  stroke-dasharray: 12;
+}
+.stroke-drawing {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 128;
+  stroke-linecap: round;
+  stroke-dasharray: 3337;
+  stroke-dashoffset: 3339;
+  animation: draw-stroke 0.8s linear forwards;
+}
+@keyframes draw-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stroke-drawing {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+.stroke-credit {
+  display: block;
+  margin-top: 16px;
+}
+.stroke-credit a {
+  text-decoration: underline;
+}
+.variant-card {
+  flex-wrap: wrap;
+}
+.variant-card .stroke-order {
+  flex-basis: 100%;
+  margin-bottom: 0;
+}
