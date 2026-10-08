@@ -6,7 +6,8 @@ const preferenceKey = "ashiato-kai-locale";
 
 const ptBR = {
   strokeTitle: "Ordem dos traços",
-  strokeHelp: "Escolha um caractere para acompanhar sua escrita.",
+  strokeHelp:
+    "A escrita se repete em sequência. Escolha um caractere para começar por ele.",
   strokeSelect: "Escolher caractere",
   strokeLoading: "Carregando traços…",
   strokeUnavailable: "Traços indisponíveis para {{character}}.",
@@ -140,7 +141,8 @@ const ptBR = {
 
 const enUS: { [K in keyof typeof ptBR]: string } = {
   strokeTitle: "Stroke order",
-  strokeHelp: "Choose a character to follow how it is written.",
+  strokeHelp:
+    "Writing repeats in sequence. Choose a character to start from there.",
   strokeSelect: "Choose a character",
   strokeLoading: "Loading strokes…",
   strokeUnavailable: "Stroke data is unavailable for {{character}}.",

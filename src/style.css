@@ -1392,8 +1392,11 @@ main {
   width: 100%;
   min-width: 0;
 }
-.stroke-order summary {
-  cursor: pointer;
+.stroke-order {
+  text-align: center;
+}
+.stroke-order h3 {
+  margin: 0;
   font-weight: 600;
 }
 .stroke-order p {
@@ -1401,6 +1404,7 @@ main {
 }
 .stroke-characters,
 .stroke-controls {
+  justify-content: center;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1416,8 +1420,7 @@ main {
   opacity: 0.45;
   cursor: default;
 }
-.stroke-order button:focus-visible,
-.stroke-order summary:focus-visible {
+.stroke-order button:focus-visible {
   outline: 2px solid #a34232;
   outline-offset: 3px;
 }
@@ -1431,7 +1434,7 @@ main {
 .stroke-canvas {
   display: block;
   width: min(100%, 240px);
-  margin: 16px 0;
+  margin: 16px auto;
   border: 1px solid #ded7ca;
   background: #faf7f0;
 }

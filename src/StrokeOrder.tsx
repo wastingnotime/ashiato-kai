@@ -20,26 +20,22 @@ async function loadCharacter(character: string): Promise<Stroke[]> {
   return data;
 }
 
-function CharacterPlayer(props: { character: string }) {
+function CharacterPlayer(props: { character: string; onComplete: () => void }) {
   const id = createUniqueId();
   const [strokes, { refetch }] = createResource(
     () => props.character,
     loadCharacter,
   );
   const [step, setStep] = createSignal(0);
-  const [playing, setPlaying] = createSignal(false);
+  const [playing, setPlaying] = createSignal(true);
   createEffect(() => {
-    props.character;
-    setPlaying(false);
-    setStep(0);
-  });
-  createEffect(() => {
-    if (!playing()) return;
-    if (step() >= (strokes()?.length ?? 0)) {
-      setPlaying(false);
-      return;
-    }
-    const timer = window.setTimeout(() => setStep((value) => value + 1), 900);
+    if (!playing() || strokes.loading) return;
+    const unavailable = !!strokes.error;
+    const complete = unavailable || step() >= (strokes()?.length ?? 0);
+    const timer = window.setTimeout(
+      () => (complete ? props.onComplete() : setStep((value) => value + 1)),
+      complete ? 1500 : 900,
+    );
     onCleanup(() => window.clearTimeout(timer));
   });
   const move = (next: number) => {
@@ -149,56 +145,63 @@ function CharacterPlayer(props: { character: string }) {
 }
 
 export function StrokeOrder(props: { text: string }) {
-  const characters = createMemo(() => [
-    ...new Set(
-      Array.from(props.text).filter((character) =>
-        /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(
-          character,
-        ),
-      ),
+  // Keep repeated characters: this is the recorded spelling, in writing order.
+  const characters = createMemo(() =>
+    Array.from(props.text).filter((character) =>
+      /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(character),
     ),
-  ]);
-  const [open, setOpen] = createSignal(false);
-  const [selected, setSelected] = createSignal("");
-  const current = () =>
-    characters().includes(selected()) ? selected() : characters()[0];
+  );
+  const [selected, setSelected] = createSignal(0);
+  const [revision, setRevision] = createSignal(0);
+  const current = createMemo(() => ({
+    character: characters()[selected()] || characters()[0],
+    revision: revision(),
+  }));
+  const jump = (index: number) => {
+    setSelected(index);
+    setRevision((value) => value + 1);
+  };
+  createEffect(() => {
+    props.text;
+    jump(0);
+  });
   return (
     <Show when={characters().length}>
-      <details
-        class="stroke-order"
-        onToggle={(event) => setOpen(event.currentTarget.open)}
-      >
-        <summary>{t("strokeTitle")}</summary>
-        <Show when={open()}>
-          <p>{t("strokeHelp")}</p>
-          <div
-            class="stroke-characters"
-            role="group"
-            aria-label={t("strokeSelect")}
-          >
-            <For each={characters()}>
-              {(character) => (
-                <button
-                  type="button"
-                  lang="ja"
-                  translate="no"
-                  aria-pressed={current() === character}
-                  onClick={() => setSelected(character)}
-                >
-                  {character}
-                </button>
-              )}
-            </For>
-          </div>
-          <Show when={current()} keyed>
-            {(character) => <CharacterPlayer character={character} />}
-          </Show>
-          <small class="stroke-credit">
-            <a href="https://github.com/parsimonhi/animCJK">AnimCJK</a> ·{" "}
-            <a href="/strokes/README.md">Arphic / LGPL</a>
-          </small>
+      <section class="stroke-order" aria-label={t("strokeTitle")}>
+        <h3>{t("strokeTitle")}</h3>
+        <p>{t("strokeHelp")}</p>
+        <div
+          class="stroke-characters"
+          role="group"
+          aria-label={t("strokeSelect")}
+        >
+          <For each={characters()}>
+            {(character, index) => (
+              <button
+                type="button"
+                lang="ja"
+                translate="no"
+                aria-pressed={selected() === index()}
+                onClick={() => jump(index())}
+              >
+                {character}
+              </button>
+            )}
+          </For>
+        </div>
+        <Show when={current()} keyed>
+          {(entry) => (
+            <CharacterPlayer
+              character={entry.character}
+              onComplete={() => jump((selected() + 1) % characters().length)}
+            />
+          )}
         </Show>
-      </details>
+        <small class="stroke-credit">
+          <a href="https://github.com/parsimonhi/animCJK">AnimCJK</a> ·{" "}
+          <a href="/strokes/README.md">Arphic / LGPL</a>
+        </small>
+      </section>
     </Show>
   );
 }
