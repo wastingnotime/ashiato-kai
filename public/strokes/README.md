@@ -9,8 +9,8 @@ https://github.com/parsimonhi/animCJK
 Derived from MakeMeAHanzi and Arphic PL KaitiM GB / Big5 fonts.
 
 The JSON files are modified representations of the SVG geometry: each file is
-named for a decimal Unicode code point. Each file has a modification notice and contains ordered strokes, each with
-one or more shape/animation-path components. Original geometry and stroke order
+named for a decimal Unicode code point. Each file states its license and modification notice, and contains ordered
+strokes with one or more shape/animation-path components. Original geometry and stroke order
 are preserved. CSS, XML markup, and identifiers are omitted. These data changes
 were made by the Ashiato Kai web contributors; they are not upstream changes.
 
