@@ -14,12 +14,6 @@ const ptBR = {
   strokeRetry: "Tentar novamente",
   strokeImage: "Ordem dos traços de {{character}}",
   strokeProgress: "{{current}} de {{total}} traços",
-  strokePrevious: "Anterior",
-  strokeNext: "Próximo",
-  strokePlay: "Reproduzir",
-  strokePause: "Pausar",
-  strokeReplay: "Repetir",
-  strokeReset: "Reiniciar",
 
   pageTitle: "Ashiato Kai — Caminhos de origem",
   pageDescription:
@@ -149,12 +143,6 @@ const enUS: { [K in keyof typeof ptBR]: string } = {
   strokeRetry: "Try again",
   strokeImage: "Stroke order for {{character}}",
   strokeProgress: "{{current}} of {{total}} strokes",
-  strokePrevious: "Previous",
-  strokeNext: "Next",
-  strokePlay: "Play",
-  strokePause: "Pause",
-  strokeReplay: "Replay",
-  strokeReset: "Reset",
 
   pageTitle: "Ashiato Kai — Paths to your origins",
   pageDescription:

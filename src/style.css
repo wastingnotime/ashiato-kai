@@ -1402,8 +1402,7 @@ main {
 .stroke-order p {
   margin: 16px 0;
 }
-.stroke-characters,
-.stroke-controls {
+.stroke-characters {
   justify-content: center;
   display: flex;
   flex-wrap: wrap;

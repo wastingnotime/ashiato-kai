@@ -27,9 +27,8 @@ function CharacterPlayer(props: { character: string; onComplete: () => void }) {
     loadCharacter,
   );
   const [step, setStep] = createSignal(0);
-  const [playing, setPlaying] = createSignal(true);
   createEffect(() => {
-    if (!playing() || strokes.loading) return;
+    if (strokes.loading) return;
     const unavailable = !!strokes.error;
     const complete = unavailable || step() >= (strokes()?.length ?? 0);
     const timer = window.setTimeout(
@@ -38,10 +37,6 @@ function CharacterPlayer(props: { character: string; onComplete: () => void }) {
     );
     onCleanup(() => window.clearTimeout(timer));
   });
-  const move = (next: number) => {
-    setPlaying(false);
-    setStep(next);
-  };
   return (
     <>
       <Show when={strokes.loading}>
@@ -81,7 +76,7 @@ function CharacterPlayer(props: { character: string; onComplete: () => void }) {
                             d={component.shape}
                             fill={index() < step() ? "currentColor" : "#ded7ca"}
                           />
-                          <Show when={playing() && index() === step()}>
+                          <Show when={index() === step()}>
                             <path
                               class="stroke-drawing"
                               d={component.line}
@@ -96,47 +91,9 @@ function CharacterPlayer(props: { character: string; onComplete: () => void }) {
                 )}
               </For>
             </svg>
-            <p role="status" aria-live={playing() ? "off" : "polite"}>
+            <p role="status" aria-live="off">
               {t("strokeProgress", { current: step(), total: data().length })}
             </p>
-            <div class="stroke-controls">
-              <button
-                type="button"
-                disabled={step() === 0}
-                onClick={() => move(step() - 1)}
-              >
-                {t("strokePrevious")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (playing()) {
-                    setPlaying(false);
-                    return;
-                  }
-                  if (step() === data().length) setStep(0);
-                  setPlaying(true);
-                }}
-              >
-                {t(
-                  playing()
-                    ? "strokePause"
-                    : step() === data().length
-                      ? "strokeReplay"
-                      : "strokePlay",
-                )}
-              </button>
-              <button
-                type="button"
-                disabled={step() === data().length}
-                onClick={() => move(step() + 1)}
-              >
-                {t("strokeNext")}
-              </button>
-              <button type="button" onClick={() => move(0)}>
-                {t("strokeReset")}
-              </button>
-            </div>
           </>
         )}
       </Show>
