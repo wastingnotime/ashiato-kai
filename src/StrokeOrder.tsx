@@ -15,9 +15,9 @@ async function loadCharacter(character: string): Promise<Stroke[]> {
   const response = await fetch(`/strokes/${character.codePointAt(0)}.json`);
   if (!response.ok) throw new Error("Character unavailable");
   const data = await response.json();
-  if (!Array.isArray(data) || !data.length)
+  if (!Array.isArray(data.strokes) || !data.strokes.length)
     throw new Error("Character unavailable");
-  return data;
+  return data.strokes;
 }
 
 function CharacterPlayer(props: { character: string; onComplete: () => void }) {

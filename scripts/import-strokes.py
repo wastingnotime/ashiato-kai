@@ -26,6 +26,6 @@ for folder in ('svgsJa', 'svgsJaKana'):
             clip = p.attrib['clip-path'][5:-1]
             groups.setdefault(order, []).append({'shape': shapes[clips[clip]], 'line': p.attrib['d']})
         assert groups and sorted(groups) == list(range(1, len(groups) + 1)), source
-        (out / (source.stem + '.json')).write_text(json.dumps([groups[k] for k in sorted(groups)], separators=(',', ':')) + '\n')
+        (out / (source.stem + '.json')).write_text(json.dumps({'notice': 'AnimCJK 2016-2026 FM-SH / FM&SH. Modified 2026-10-08 by Ashiato Kai web contributors: converted SVG paths and stroke order into JSON, omitting SVG markup and animation CSS. See /strokes/README.md and /strokes/licenses/.', 'strokes': [groups[k] for k in sorted(groups)]}, separators=(',', ':')) + '\n')
         count += 1
 print(f'Imported and validated {count} characters')
