@@ -133,9 +133,6 @@ function Layout(props: { children?: JSX.Element }) {
           <A href="/" end activeClass="active">
             {t("search")}
           </A>
-          <A href="/contact" activeClass="active">
-            {t("contact")}
-          </A>
           <A href="/statistics" activeClass="active">
             {t("statistics")}
           </A>
@@ -172,6 +169,9 @@ function Layout(props: { children?: JSX.Element }) {
           ASHIATO KAI <i>·</i> {t("footerTagline")}
         </span>
         <span>{t("footerCaution")}</span>
+        <A href="/contact" class="footer-contact">
+          {t("contact")}
+        </A>
       </footer>
       <nav class="mobile-nav" aria-label={t("navigation")}>
         <A href="/" end activeClass="active">
@@ -181,10 +181,6 @@ function Layout(props: { children?: JSX.Element }) {
         <A href="/statistics" activeClass="active">
           <Icon name="chart" size={21} />
           <span>{t("statistics")}</span>
-        </A>
-        <A href="/contact" activeClass="active">
-          <Icon name="person" size={21} />
-          <span>{t("contact")}</span>
         </A>
       </nav>
     </div>
@@ -776,7 +772,7 @@ function StatList() {
         <div class="page-heading">
           <BackLink href="/statistics" label={t("statistics")} />
           <span class="section-index">
-            {term() ? t("statistics") : t("statsTopTen")}
+            {term() ? t("statsSearchEyebrow") : t("statsTopTen")}
           </span>
           <h1>
             {config() ? t(config()!.titleKey) : t("statistics")}

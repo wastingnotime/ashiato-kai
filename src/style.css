@@ -170,6 +170,13 @@ main {
   font-weight: 700;
   letter-spacing: 0.14em;
 }
+.footer-contact {
+  color: #a64b39;
+  font-weight: 700;
+}
+.footer-contact:hover {
+  text-decoration: underline;
+}
 .site-footer i {
   font-style: normal;
   color: #bd5b47;
@@ -1483,21 +1490,28 @@ main {
   padding: 24px;
 }
 .contact-card p {
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #777a72;
+  margin-bottom: 20px;
 }
 .contact-card small,
 .field small {
   color: #777a72;
   line-height: 1.5;
 }
-.contact-address {
+.contact-card .contact-address {
+  font-size: 12px;
+  font-weight: 700;
+  color: #252824;
+  margin: 16px 0 12px;
   overflow-wrap: anywhere;
+}
+.contact-card small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
 }
 .stats-search {
   margin-bottom: 26px;
-}
-@media (max-width: 680px) {
-  .mobile-nav a {
-    width: 90px;
-  }
 }
