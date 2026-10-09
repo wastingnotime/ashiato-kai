@@ -5,6 +5,20 @@ export type Locale = "pt-BR" | "en-US";
 const preferenceKey = "ashiato-kai-locale";
 
 const ptBR = {
+  contact: "Contato",
+  contactDescription:
+    "Se não encontrou alguém, envie informações que podem ajudar na pesquisa. Também entre em contato para sugerir correções em nomes, grafias japonesas, destinos, navios, datas ou outros detalhes. Descreva o que sabe com o máximo de detalhes possível.",
+  contactEmail: "Entrar em contato por e-mail",
+  contactHelp:
+    "O botão abre seu aplicativo de e-mail. Você também pode copiar o endereço acima.",
+  shipMatchHelp:
+    "Use o nome completo do navio. A busca não aceita apenas o início do nome.",
+  statsSearch: "Pesquisar nesta categoria",
+  statsSearchHelp:
+    "Use o nome completo em romaji ou o nome completo da província para consultar além do top 10.",
+  showTopTen: "Ver top 10",
+  statsSearchResults: "RESULTADOS PARA {{term}}",
+
   strokeTitle: "Ordem dos traços",
   strokeHelp:
     "A escrita se repete em sequência. Escolha um caractere para começar por ele.",
@@ -136,6 +150,20 @@ const ptBR = {
 };
 
 const enUS: { [K in keyof typeof ptBR]: string } = {
+  contact: "Contact",
+  contactDescription:
+    "If you could not find someone, share information that may help the search. You can also suggest corrections to names, Japanese spellings, destinations, ships, dates, or other record details. Describe what you know in as much detail as possible.",
+  contactEmail: "Contact by email",
+  contactHelp:
+    "The button opens your email app. You can also copy the address above.",
+  shipMatchHelp:
+    "Use the full ship name. Searching by the start of its name is not supported.",
+  statsSearch: "Search this category",
+  statsSearchHelp:
+    "Enter the full Romaji name or full prefecture name to search beyond the top ten.",
+  showTopTen: "Show top ten",
+  statsSearchResults: "RESULTS FOR {{term}}",
+
   strokeTitle: "Stroke order",
   strokeHelp:
     "Writing repeats in sequence. Choose a character to start from there.",

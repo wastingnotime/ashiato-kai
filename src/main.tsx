@@ -133,6 +133,9 @@ function Layout(props: { children?: JSX.Element }) {
           <A href="/" end activeClass="active">
             {t("search")}
           </A>
+          <A href="/contact" activeClass="active">
+            {t("contact")}
+          </A>
           <A href="/statistics" activeClass="active">
             {t("statistics")}
           </A>
@@ -178,6 +181,10 @@ function Layout(props: { children?: JSX.Element }) {
         <A href="/statistics" activeClass="active">
           <Icon name="chart" size={21} />
           <span>{t("statistics")}</span>
+        </A>
+        <A href="/contact" activeClass="active">
+          <Icon name="person" size={21} />
+          <span>{t("contact")}</span>
         </A>
       </nav>
     </div>
@@ -273,6 +280,9 @@ function SearchForm(props: { initial?: URLSearchParams; compact?: boolean }) {
                 inputmode={key === "Year" ? "numeric" : "text"}
                 autocomplete="off"
               />
+              <Show when={key === "ShipName"}>
+                <small>{t("shipMatchHelp")}</small>
+              </Show>
             </label>
           )}
         </For>
@@ -738,49 +748,81 @@ function StatList() {
   const config = createMemo(() =>
     categories.find((item) => item.kind === kind()),
   );
-  const [items] = createResource(kind, async (value) =>
-    value === "names"
-      ? topNames()
-      : value === "surnames"
-        ? topSurnames()
-        : topPrefectures(),
-  );
-  const [filter, setFilter] = createSignal("");
-  const filtered = createMemo(() =>
-    (items() || []).filter((item) =>
-      ("PrefectureName" in item
-        ? item.PrefectureName
-        : "SurnameRomaji" in item
-          ? item.SurnameRomaji
-          : item.NameRomaji
-      )
-        .toLowerCase()
-        .includes(filter().toLowerCase()),
-    ),
+  const [query, setQuery] = useSearchParams();
+  const term = () => (typeof query.q === "string" ? query.q.trim() : "");
+  const [draft, setDraft] = createSignal(term());
+  createEffect(() => {
+    kind();
+    setDraft(term());
+  });
+  const [items] = createResource(
+    () => ({ kind: kind(), term: term() }),
+    async (value) =>
+      value.kind === "names"
+        ? value.term
+          ? nameStats(value.term)
+          : topNames()
+        : value.kind === "surnames"
+          ? value.term
+            ? surnameStats(value.term)
+            : topSurnames()
+          : value.term
+            ? prefectureStats(value.term)
+            : topPrefectures(),
   );
   return (
     <Layout>
       <div class="page narrow-page">
         <div class="page-heading">
           <BackLink href="/statistics" label={t("statistics")} />
-          <span class="section-index">{t("statsTopTen")}</span>
+          <span class="section-index">
+            {term() ? t("statistics") : t("statsTopTen")}
+          </span>
           <h1>
             {config() ? t(config()!.titleKey) : t("statistics")}
             <span class="accent-period">.</span>
           </h1>
           <p>{config() ? t(config()!.bodyKey) : ""}.</p>
         </div>
-        <div class="list-toolbar">
-          <span>{t("topTenLabel")}</span>
-          <label>
-            <Icon name="search" size={17} />
+        <form
+          class="surface stats-search"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (draft().trim()) setQuery({ q: draft().trim() });
+          }}
+        >
+          <label class="field">
+            <span>{t("statsSearch")}</span>
             <input
-              value={filter()}
-              onInput={(event) => setFilter(event.currentTarget.value)}
-              placeholder={t("filterList")}
-              aria-label={t("filterList")}
+              value={draft()}
+              onInput={(event) => setDraft(event.currentTarget.value)}
+              maxlength="200"
+              required
             />
           </label>
+          <p class="form-help">{t("statsSearchHelp")}</p>
+          <div class="form-actions">
+            <button type="submit" class="button primary">
+              <Icon name="search" />
+              {t("search")}
+            </button>
+            <Show when={term()}>
+              <button
+                type="button"
+                class="button text"
+                onClick={() => setQuery({ q: undefined })}
+              >
+                {t("showTopTen")}
+              </button>
+            </Show>
+          </div>
+        </form>
+        <div class="list-toolbar">
+          <span>
+            {term()
+              ? t("statsSearchResults", { term: term() })
+              : t("topTenLabel")}
+          </span>
         </div>
         <Suspense fallback={<Loading />}>
           <Show when={items.error}>
@@ -788,7 +830,7 @@ function StatList() {
           </Show>
           <Show when={items()}>
             <div class="surface ranking-list">
-              <For each={filtered()}>
+              <For each={items()}>
                 {(item) => {
                   const name =
                     "PrefectureName" in item
@@ -826,8 +868,8 @@ function StatList() {
                   );
                 }}
               </For>
-              <Show when={!filtered().length}>
-                <Empty title={t("emptyTopTen")} body={t("emptyTopTenHelp")} />
+              <Show when={!items()?.length}>
+                <Empty title={t("noData")} body={t("noDataHelp")} />
               </Show>
             </div>
           </Show>
@@ -1086,6 +1128,30 @@ function NotFound() {
   );
 }
 
+function Contact() {
+  return (
+    <Layout>
+      <div class="page narrow-page">
+        <div class="page-heading">
+          <BackLink href="/" />
+          <h1>{t("contact")}</h1>
+        </div>
+        <section class="surface contact-card">
+          <p>{t("contactDescription")}</p>
+          <a
+            class="button primary"
+            href="mailto:ashiato-kai@uedasoft-it.com?subject=Ashiato%20Kai"
+          >
+            {t("contactEmail")}
+          </a>
+          <p class="contact-address">ashiato-kai@uedasoft-it.com</p>
+          <small>{t("contactHelp")}</small>
+        </section>
+      </div>
+    </Layout>
+  );
+}
+
 function AppRoot() {
   createEffect(() => {
     document.documentElement.lang = locale();
@@ -1097,6 +1163,7 @@ function AppRoot() {
   return (
     <Router>
       <Route path="/" component={Home} />
+      <Route path="/contact" component={Contact} />
       <Route path="/search" component={Results} />
       <Route path="/statistics" component={StatisticsHome} />
       <Route path="/statistics/:kind" component={StatList} />

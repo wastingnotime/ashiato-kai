@@ -33,3 +33,11 @@ The API currently returns all search matches without pagination. The interface r
 Record details and name/surname statistics include an always-visible, centered stroke-order viewer. Playback starts automatically, advances through every character in the recorded order (including repetitions), and loops after a short pause. Character buttons jump to and restart any position. Reduced-motion preferences disable the drawing transition. Unavailable characters are skipped after displaying their fallback. Controls are available in both interface languages.
 
 The viewer uses the same AnimCJK geometry bundled by the iOS app, with 7,184 characters served as local, per-character JSON assets. It requires no API changes or third-party requests. Missing characters and failed loads display a localized fallback with retry. See [data provenance and licenses](public/strokes/README.md) and the [import script](scripts/import-strokes.py).
+
+## Contact and statistics lookup
+
+The contact page follows the iOS app: visitors can email `ashiato-kai@uedasoft-it.com` with subject “Ashiato Kai” for research leads or record corrections. The address remains visible for copying.
+
+Each statistics category offers an API lookup beyond the top ten. Queries use the full Romaji name or prefecture name and live in the `q` URL parameter. Name and surname lookups return all recorded Japanese spellings; ranking rows still link to a selected spelling. Clearing a lookup restores the top ten.
+
+Main-search text filters, including ship names, use exact ASCII case-insensitive matching. The API does not support prefix or partial matching; the ship field explains this requirement.

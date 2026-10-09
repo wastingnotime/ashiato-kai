@@ -1477,3 +1477,27 @@ main {
   flex-basis: 100%;
   margin-bottom: 0;
 }
+
+.stats-search,
+.contact-card {
+  padding: 24px;
+}
+.contact-card p {
+  line-height: 1.7;
+}
+.contact-card small,
+.field small {
+  color: #777a72;
+  line-height: 1.5;
+}
+.contact-address {
+  overflow-wrap: anywhere;
+}
+.stats-search {
+  margin-bottom: 26px;
+}
+@media (max-width: 680px) {
+  .mobile-nav a {
+    width: 90px;
+  }
+}
